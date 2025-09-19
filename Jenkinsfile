@@ -17,9 +17,7 @@ pipeline {
                     emailext (
                         to: 'pranavisrikanth6@gmail.com',
                         subject: "Test Stage: ${currentBuild.currentResult}",
-                        body: "Test stage completed with status: ${currentBuild.currentResult}",
-                        attachmentsPattern: '**/test-results/*.log',
-                        mimeType: 'text/plain'
+                        body: "The Test stage completed with status: ${currentBuild.currentResult}"
                     )
                 }
             }
@@ -28,15 +26,14 @@ pipeline {
         stage('Security Scan') {
             steps {
                 echo 'Running security scan...'
+                bat 'npm audit || exit 0'
             }
             post {
                 always {
                     emailext (
                         to: 'pranavisrikanth6@gmail.com',
-                        subject: "Security Scan Stage: ${currentBuild.currentResult}",
-                        body: "Security scan completed with status: ${currentBuild.currentResult}",
-                        attachmentsPattern: '**/security/*.log',
-                        mimeType: 'text/plain'
+                        subject: "Security Scan: ${currentBuild.currentResult}",
+                        body: "Security scan completed with status: ${currentBuild.currentResult}"
                     )
                 }
             }
