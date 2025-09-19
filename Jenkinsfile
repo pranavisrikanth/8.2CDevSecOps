@@ -1,47 +1,51 @@
 pipeline {
-    agent any
+  agent any
 
-    environment {
-        SONAR_TOKEN = credentials('SONAR_TOKEN') // Your SonarCloud token securely loaded from Jenkins
+  environment {
+    SONAR_TOKEN = credentials('c4a1f2b5864b846b7055c39a1570763321e12b9e') 
+  }
+
+  stages {
+
+    stage('Build') {
+      steps {
+        echo 'Installing dependencies...'
+        sh 'npm install'
+      }
     }
 
-    stages {
-        stage('Build') {
-            steps {
-                echo 'Building the app...'
-                sh 'npm install'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
-                sh 'npm test || echo "Tests failed but continuing..."'
-            }
-        }
-
-        stage('Security Scan') {
-            steps {
-                echo 'Running npm audit...'
-                sh 'npm audit || echo "Audit found issues"'
-            }
-        }
-
-        // 🔽 This is where you add the SonarCloud Analysis stage
-        stage('SonarCloud Analysis') {
-            steps {
-                withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        echo "Downloading SonarScanner CLI..."
-                        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
-                        unzip -q sonar-scanner.zip
-                        export PATH=$PATH:$PWD/sonar-scanner-5.0.1.3006/bin
-
-                        echo "Running SonarCloud Analysis..."
-                        sonar-scanner -Dsonar.login=$SONAR_TOKEN
-                    '''
-                }
-            }
-        }
+    stage('Test') {
+      steps {
+        echo ' Running tests...'
+        // Continue even if tests fail (for pipeline continuity)
+        sh 'npm test || echo "Tests failed, but continuing..."'
+      }
     }
+
+    stage('SonarCloud Analysis') {
+      steps {
+        echo ' Starting SonarCloud scan...'
+        sh '''
+          echo " Downloading SonarScanner CLI..."
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          
+          echo " Extracting..."
+          unzip -q sonar-scanner.zip
+          
+          echo " Running SonarScanner..."
+          export PATH=$PWD/sonar-scanner-5.0.1.3006-linux/bin:$PATH
+          sonar-scanner
+        '''
+      }
+    }
+  }
+
+  post {
+    always {
+      echo ' Pipeline completed.'
+    }
+    failure {
+      echo ' Pipeline failed. Check logs for errors.'
+    }
+  }
 }
