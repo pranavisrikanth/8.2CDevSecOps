@@ -17,7 +17,6 @@ pipeline {
     stage('Test') {
       steps {
         echo ' Running tests...'
-        // Continue even if tests fail (for pipeline continuity)
         sh 'npm test || echo "Tests failed, but continuing..."'
       }
     }
